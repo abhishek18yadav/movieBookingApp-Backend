@@ -6,18 +6,31 @@ const showSchema = mongoose.Schema({
         required: true,
         ref: 'Theatre'
     },
+    screenId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Screen",
+    required: true
+  },
     movieId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref:'Movie'
     },
     timming: {
-        type: String,
+        type: Date,
         required:true
     },
-    seatConfiguration: {
-        type:String,
-    },
+    seatConfiguration: [
+    {
+      seatNumber: String,
+      type: String,
+      status: {
+        type: String,
+        enum: ["available", "locked", "booked"],
+        default: "available"
+      }
+    }
+  ],
     price: {
         type: Number,
         required:true
@@ -27,7 +40,8 @@ const showSchema = mongoose.Schema({
         required:true
     },
     format: {
-        type:String
+        type: String,
+        enum:['2d','3d']
     }
 }, { timestamps: true });
 const Show = mongoose.model('Show', showSchema);
