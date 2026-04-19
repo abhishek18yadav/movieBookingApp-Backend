@@ -1,5 +1,5 @@
-import crudRepository from "./crudRepository.js";
 import Show from '../schema/Show.js'
+import crudRepository from "./crudRepository.js";
 const showRepository = {
     ...crudRepository(Show),
     getShowByMovie: async (movieId) => {
@@ -9,3 +9,4 @@ const showRepository = {
         return Show.find({ theatreId });
     }
 }
+export default showRepository;

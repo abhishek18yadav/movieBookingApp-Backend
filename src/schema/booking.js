@@ -37,9 +37,12 @@ const bookingSchema = mongoose.Schema({
         },
         default: 'processing'
     },
-    seat: {
-        type: String,
-    }
-}, { timespamps: true });
+    seats: [
+        {
+            seatNumber: Number,
+            row:String
+        }
+    ]
+}, { timestamps: true });
 const Booking = mongoose.model('Booking', bookingSchema);
 export default Booking;

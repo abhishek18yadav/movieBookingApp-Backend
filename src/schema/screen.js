@@ -13,12 +13,23 @@ const screenSchema = mongoose.Schema({
         type: Number,
         required:true
     },
-    seatLayout: {
-        row: String,
-        number: Number,
-        type: {
-            type: String,
-            enum: ["regular", "premium", "recliner"]
+    seatLayout: [
+        {
+            row: {
+                type: String,
+                required: true
+            },
+            number: {
+                type: Number,
+                required: true
+            },
+            type: {
+                type: String,
+                enum: ["regular", "premium", "recliner"],
+                default: "regular"
+            }
         }
-    }
+    ]
 })
+const Screen = mongoose.model('Screen', screenSchema);
+export default Screen;

@@ -1,5 +1,5 @@
-import crudRepository from "./crudRepository.js";
 import User from '../schema/user.js'
+import crudRepository from "./crudRepository.js";
 const userRepository = {
     ...crudRepository(User),
     findUserByEmail: async (email) => {
@@ -11,3 +11,4 @@ const userRepository = {
         return user;
     }
 }
+export default userRepository;

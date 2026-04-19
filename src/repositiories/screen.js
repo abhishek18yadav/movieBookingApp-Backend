@@ -1,5 +1,5 @@
-import crudRepository from "./crudRepository.js";
 import Screen from '../schema/screen.js'
+import crudRepository from "./crudRepository.js";
 
 const screenRepository = {
     ...crudRepository(Screen),
@@ -7,3 +7,4 @@ const screenRepository = {
         return Screen.find({ theatreId });
     }
 }
+export default screenRepository;

@@ -13,14 +13,34 @@ const theatreSchema = mongoose.Schema({
         type: String,
         required:true
     },
-    owner: {
+    ownerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required:true
     },
-    movies: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref:'Movie'
+    movies: [
+        {
+            name: {
+                type: String,
+                 
+            },
+            movieId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Movie',
+            },
+            price: {
+                type: Number,
+            },
+            status: {
+                type: String,
+                enum: ['active', 'inactive'],
+                default: 'active'
+            }
+        }
+    ],
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     }
 }, { timestamps: true });
 

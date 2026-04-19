@@ -1,5 +1,5 @@
-import crudRepository from './crudRepository.js'
 import Booking from '../schema/booking.js'
+import crudRepository from './crudRepository.js'
 const bookingRepository = {
     ...crudRepository(Booking),
     getBookingByUser : async (userId) => {
@@ -7,3 +7,4 @@ const bookingRepository = {
         return user;
     }
 }
+export default bookingRepository;
