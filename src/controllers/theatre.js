@@ -1,8 +1,9 @@
 import { StatusCodes } from "http-status-codes";
-import { addMovieInTheatreService } from "../services/theatre.js";
-import { checkMovieInTheatreService } from "../services/theatre.js";
+
 import theatreRepository from "../repositiories/theatre.js";
 import userRepository from "../repositiories/user.js";
+import { addMovieInTheatreService } from "../services/theatre.js";
+import { checkMovieInTheatreService } from "../services/theatre.js";
 import {
   createTheatreService
 } from "../services/theatre.js";

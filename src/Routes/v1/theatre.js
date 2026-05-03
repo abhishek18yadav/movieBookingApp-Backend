@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { createTheatreController,addMovieToTheatreController ,deleteTheatreController, getAllTheatreController, getTheatreController, UpdateStatus, updateTheatreController } from '../../controllers/theatre.js';
+import { addMovieToTheatreController ,createTheatreController,deleteTheatreController, getAllTheatreController, getTheatreController, UpdateStatus, updateTheatreController } from '../../controllers/theatre.js';
 import { isAuthenticated } from '../../middlewares/authMiddleware.js';
 const router = express.Router();
 
