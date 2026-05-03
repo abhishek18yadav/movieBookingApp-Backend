@@ -9,6 +9,8 @@ export const createTheatreService = async (data, theatre_adminId) => {
 
         // 1️ Get user
         const user = await userRepository.getById(theatre_adminId);
+        console.log("theatreadmin fetched in theatre creating servoces", user)
+        console.log("dtaa in theatre creating servoces",data)
 
         if (!user) {
             throw new ValidationError({
@@ -33,7 +35,9 @@ export const createTheatreService = async (data, theatre_adminId) => {
             });
         }
 
-        // 4️ Attach ownership
+        // 4️ Attach ownership , here it is string type
+        console.log("theatre_adminId",theatre_adminId)
+        if (!data) data = {};
         data.ownerId = theatre_adminId;
 
         // 5️ Force theatre status to pending
@@ -220,10 +224,10 @@ export const getMoviesInTheatreService = async (theatreId) => {
         throw error;
     }
 };
-export const updateMovieInTheatreService = async (
+export const addMovieInTheatreService = async (
     theatreId,
     movieId,
-    updateData,
+    newdata,
     userId
 ) => {
     try {
@@ -243,30 +247,25 @@ export const updateMovieInTheatreService = async (
             throw new clientError({
                 message: "Only owner can modify",
                 statusCode: StatusCodes.FORBIDDEN,
-                explaination:"Only owner can modify"
-            })
-        }
-
-        const movieIndex = theatre.movies.findIndex(
-            (movie) => movie.movieId.toString() === movieId.toString()
-        );
-
-        if (movieIndex !== -1) {
-
-            // Update existing movie
-            theatre.movies[movieIndex] = {
-                ...theatre.movies[movieIndex]._doc,
-                ...updateData
-            };
-
-        } else {
-
-            // Add new movie
-            theatre.movies.push({
-                movieId,
-                ...updateData
+                explaination: "Only owner can modify"
             });
         }
+
+        // Theatre must be approved
+        if (theatre.status !== 'approved') {
+            throw new clientError({
+                message: "Theatre is not approved yet. Contact super admin.",
+                statusCode: StatusCodes.FORBIDDEN,
+                explaination: "Theatre status is not approved"
+            });
+        }
+
+        // Add new movie
+        theatre.movies.push({
+                movieId,
+                ...newdata
+            });
+        
 
         await theatre.save();
 

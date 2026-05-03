@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const bookingSchema = mongoose.Schema({
+    showId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Show'
+    },
     theatreId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,

@@ -1,10 +1,15 @@
 import { StatusCodes } from "http-status-codes";
-
+import { addMovieInTheatreService } from "../services/theatre.js";
+import { checkMovieInTheatreService } from "../services/theatre.js";
 import theatreRepository from "../repositiories/theatre.js";
 import userRepository from "../repositiories/user.js";
 import {
   createTheatreService
 } from "../services/theatre.js";
+import { deleteTheatreService } from "../services/theatre.js";
+import { getTheatreService } from "../services/theatre.js";
+import { getAllTheatreService } from "../services/theatre.js";
+import { updateTheatreService } from "../services/theatre.js";
 import {
   customErrorResponse,
   internalErrorResponse,
@@ -13,7 +18,7 @@ import {
 export const createTheatreController = async (req, res) => {
   try {
     const theatreAdminId = req.user;
-
+    console.log("req.user in theatre crete controller" , req.body)
     const response = await createTheatreService(
       req.body,
       theatreAdminId
@@ -35,11 +40,11 @@ export const createTheatreController = async (req, res) => {
       .json(internalErrorResponse(error));
   }
 };
-import { deleteTheatreService } from "../services/theatre.js";
 
 export const deleteTheatreController = async (req, res) => {
   try {
-    const { theatreId, theatreAdminId } = req.params;
+    const { theatreId } = req.params;
+    const theatreAdminId = req.user;
 
     const response = await deleteTheatreService(
       theatreId,
@@ -62,7 +67,6 @@ export const deleteTheatreController = async (req, res) => {
       .json(internalErrorResponse(error));
   }
 };
-import { getTheatreService } from "../services/theatre.js";
 
 export const getTheatreController = async (req, res) => {
   try {
@@ -86,7 +90,6 @@ export const getTheatreController = async (req, res) => {
       .json(internalErrorResponse(error));
   }
 };
-import { getAllTheatreService } from "../services/theatre.js";
 
 export const getAllTheatreController = async (req, res) => {
   try {
@@ -108,11 +111,11 @@ export const getAllTheatreController = async (req, res) => {
       .json(internalErrorResponse(error));
   }
 };
-import { updateTheatreService } from "../services/theatre.js";
 
 export const updateTheatreController = async (req, res) => {
   try {
-    const { theatreId, theatreAdminId } = req.params;
+    const { theatreId } = req.params;
+    const theatreAdminId = req.user;
     const response = await updateTheatreService(
       theatreId,
       req.body,
@@ -135,7 +138,6 @@ export const updateTheatreController = async (req, res) => {
       .json(internalErrorResponse(error));
   }
 };
-import { checkMovieInTheatreService } from "../services/theatre.js";
 
 export const checkMovieInTheatreController = async (req, res) => {
   try {
@@ -192,3 +194,27 @@ export const UpdateStatus = async (req, res) => {
         throw error;
     }
 }
+
+export const addMovieToTheatreController = async (req, res) => {
+  try {
+    const { theatreId, movieId } = req.params;
+    const theatreAdminId = req.user;
+
+    const response = await addMovieInTheatreService(
+      theatreId,
+      movieId,
+      req.body,
+      theatreAdminId
+    );
+
+    return res.status(StatusCodes.OK).json(
+      successResponse(response, "Movie added/updated in theatre successfully")
+    );
+  } catch (error) {
+    console.log("Error in addMovieToTheatreController", error);
+    if (error.statusCode) {
+      return res.status(error.statusCode).json(customErrorResponse(error));
+    }
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(internalErrorResponse(error));
+  }
+};

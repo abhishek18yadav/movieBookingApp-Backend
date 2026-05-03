@@ -1,5 +1,6 @@
 import StatusCodes from 'http-status-codes';
 
+import bookingRepository from '../repositiories/booking.js'
 import showRepository from '../repositiories/show.js';
 import theatreRepository from '../repositiories/theatre.js'
 import userRepository from '../repositiories/user.js'
@@ -51,6 +52,17 @@ export const createShowService = async (data, userId) => {
             throw new validationError({
                 message: "Show already exists at this time on this screen",
                 errorDetails: "Time conflict"
+            });
+        }
+
+        const requiredPriceKeys = ['regular', 'premium', 'recliner'];
+        const missingKeys = requiredPriceKeys.filter(
+            key => !data.ticketPrices || data.ticketPrices[key] === undefined
+        );
+        if (missingKeys.length > 0) {
+            throw new clientError({
+                message: `Missing ticket prices for: ${missingKeys.join(', ')}`,
+                statusCode: StatusCodes.BAD_REQUEST
             });
         }
 
@@ -147,6 +159,19 @@ export const updateShowService = async (showId, data, userId) => {
         message: "Unauthorized",
         errorDetails: "Not your theatre"
       });
+    }
+
+    if (data.ticketPrices) {
+      const activeBookings = await bookingRepository.getAll({
+        showId: showId,
+        status: { $in: ['successfull', 'processing'] }
+      });
+      if (activeBookings.length > 0) {
+        throw new clientError({
+          message: "Cannot update prices while active bookings exist",
+          statusCode: StatusCodes.CONFLICT
+        });
+      }
     }
 
     const updatedShow = await showRepository.update(showId, data);

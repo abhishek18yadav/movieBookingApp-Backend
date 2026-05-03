@@ -23,7 +23,8 @@ export const isAuthenticated = async (req, res, next) => {
         }
         console.log("response in isAuthenticated", response);
         const user = await userRepository.getById(response.id);
-        req.user = user.id;
+        req.user = user.id.toString();
+        console.log("req.user.toString() is ", req.user.toString());
         next();
 
     } catch (error) {

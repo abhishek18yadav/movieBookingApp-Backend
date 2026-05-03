@@ -32,9 +32,10 @@ const showSchema = mongoose.Schema({
     }
   }
 ],
-    price: {
-        type: Number,
-        required:true
+    ticketPrices: {
+        regular:  { type: Number, required: true, min: 0 },
+        premium:  { type: Number, required: true, min: 0 },
+        recliner: { type: Number, required: true, min: 0 }
     },
     noOfSeats: {
         type: Number,

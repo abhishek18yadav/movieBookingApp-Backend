@@ -1,6 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 
 import bookingRepository from '../repositiories/booking.js'
+import refundRepository from '../repositiories/refund.js';
 import showRepository from '../repositiories/show.js'
 import clientError from '../utils/errors/clientError.js'
 export const createBookingService = async (data) => {
@@ -30,7 +31,17 @@ export const createBookingService = async (data) => {
           foundSeat.status = "locked";
         }
         
-        data.totalCost = selectedSeats.length * show.price;
+        data.totalCost = selectedSeats.reduce((sum, seat) => {
+            const foundSeat = seatConfig.find(s => s.row === seat.row && s.number === seat.number);
+            const price = show.ticketPrices[foundSeat.type];
+            if (price === undefined) {
+                throw new clientError({
+                    message: `No price configured for seat type: ${foundSeat.type}`,
+                    statusCode: StatusCodes.BAD_REQUEST
+                });
+            }
+            return sum + price;
+        }, 0);
         const response = await bookingRepository.create(data);
         await show.save();
         return response;
@@ -160,4 +171,87 @@ export const getBookingByIdService = async (bookingId, userId) => {
     console.log("error in getBookingByIdService", error);
     throw error;
   }
+};
+
+export const cancelBookingService = async (bookingId, userId) => {
+    try {
+        // 1. Fetch booking
+        const booking = await bookingRepository.getById(bookingId);
+        if (!booking) {
+            throw new clientError({
+                message: 'Booking not found',
+                statusCode: StatusCodes.NOT_FOUND
+            });
+        }
+
+        // 2. Ownership check
+        if (booking.userId.toString() !== userId.toString()) {
+            throw new clientError({
+                message: 'Unauthorized: you do not own this booking',
+                statusCode: StatusCodes.FORBIDDEN
+            });
+        }
+
+        // 3. Status check — only successfull bookings can be cancelled
+        if (booking.status !== 'successfull') {
+            throw new clientError({
+                message: 'Booking is not eligible for cancellation',
+                statusCode: StatusCodes.BAD_REQUEST
+            });
+        }
+
+        // 4. Fetch show
+        const show = await showRepository.getById(booking.showId);
+        if (!show) {
+            throw new clientError({
+                message: 'Show not found',
+                statusCode: StatusCodes.NOT_FOUND
+            });
+        }
+
+        // 5. Time check — no cancellation within 30 minutes of show
+        const timeUntilShow = new Date(show.timming) - Date.now();
+        if (timeUntilShow < 30 * 60 * 1000) {
+            throw new clientError({
+                message: 'Cannot cancel within 30 minutes of show time',
+                statusCode: StatusCodes.BAD_REQUEST
+            });
+        }
+
+        // 6. Release seats
+        for (const seat of booking.seats) {
+            const foundSeat = show.seatConfiguration.find(
+                s => s.row === seat.row && s.number === seat.seatNumber
+            );
+            if (foundSeat) {
+                foundSeat.status = 'available';
+            }
+        }
+
+        // 7. Increment available seats
+        show.noOfSeats += booking.noOfSeats;
+
+        // 8. Update booking status
+        booking.status = 'cancelled';
+
+        // 9. Create refund
+        const refundData = {
+            bookingId: booking._id,
+            userId: booking.userId,
+            amount: booking.totalCost,
+            status: 'pending'
+        };
+
+        // 10. Save all
+        await show.save();
+        await booking.save();
+        const refund = await refundRepository.create(refundData);
+
+        // 11. Return result
+        return { booking, refund };
+
+    } catch (error) {
+        console.log('error in cancelBookingService', error);
+        throw error;
+    }
 };

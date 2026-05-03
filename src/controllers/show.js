@@ -5,14 +5,14 @@ import {
   deleteShowService,
   getShowsService,
   updateShowService
-} from "../services/showService.js";
+} from "../services/show.js";
 
 
 //  Create Show
 export const createShowController = async (req, res) => {
   try {
 
-    const userId = req.user.id; // from auth middleware
+    const userId = req.user; // from auth middleware (already the ID)
     const data = req.body;
 
     const show = await createShowService(data, userId);
@@ -65,7 +65,7 @@ export const deleteShowController = async (req, res) => {
   try {
 
     const showId = req.params.id;
-    const userId = req.user.id;
+    const userId = req.user;
 
     const deletedShow = await deleteShowService(showId, userId);
 
@@ -92,7 +92,7 @@ export const updateShowController = async (req, res) => {
   try {
 
     const showId = req.params.id;
-    const userId = req.user.id;
+    const userId = req.user;
     const data = req.body;
 
     const updatedShow = await updateShowService(
