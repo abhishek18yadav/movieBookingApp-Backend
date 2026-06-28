@@ -40,6 +40,12 @@ const movieSchema = mongoose.Schema({
     poster: {
         type: String,
         required: true,
+    },
+    Imdb: {
+        type: Number,
+        required:true,
+        min: 0,
+        max: 10
     }
 }, { timestamps: true });
 const Movie = mongoose.model('Movie', movieSchema);
