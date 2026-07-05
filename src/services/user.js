@@ -6,18 +6,9 @@ import clientError from '../utils/errors/clientError.js';
 import ValidationError from '../utils/errors/validationError.js';
 export const createUserService = async (data) => {
     try {
-        if (!data.role || data.role === 'endUser') {
-            if (data.userStatus && data.userStatus !== 'pending') {
-                throw new ValidationError({
-                    errorDetails: "we cant set any other status for customer",
-                    message:"invalid Status"
-                })
-            }
-        }
-        if (data.role && data.role !== 'endUser') {
-            data.userStatus = 'pending';
-        }
         const newUser = await userRepository.create(data);
+        console.log("newUser", newUser);
+        // userRepository.save(newUser);
         return newUser;
     }
     catch (error) {
@@ -73,7 +64,7 @@ export const getByIdService = async (Id) => {
 export const UpdateUserRoleOrStatusService = async (data, userId,super_adminId) => {
     try {
         const user = await userRepository.getById(super_adminId);
-        console.log("user is", user);
+        // console.log("user is", user);
         if (user.role !== "super_admin") {
             throw new ValidationError({
                 message: "Only super_admin can change roles",
