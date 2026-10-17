@@ -32,23 +32,21 @@ const userSchema = mongoose.Schema({
     },
     
 }, { timestamps: true });
-userSchema.pre('save', async function () {
+userSchema.pre('save',  function saveUser(next) {
     // If password isn't changed, just exit (no next() needed for async)
-    if (!this.isModified("password")) return;
-
-    try {
-        const saltRounds = 10;
-        const salt = await bcrypt.genSalt(saltRounds);
-        this.password = await bcrypt.hash(this.password, salt);
-    } catch (error) {
-        throw new Error(error); // Mongoose will catch this as a validation error
-    }
+    // if (!this.isModified("password")) return;
+    const saltRounds = 10;
+    const salt =  bcrypt.genSaltSync(saltRounds);
+    const hashedPassword = bcrypt.hashSync(this.password, salt);
+    this.password = hashedPassword;
+    next;
+    
 });
 
-userSchema.methods.isValidPassword = async function (plainPassword) {
-    const currentUser = this;
-    const compare = await bcrypt.compare(plainPassword, currentUser.password);
-    return compare;
-}
+// userSchema.methods.isValidPassword = async function (plainPassword) {
+//     const currentUser = this;
+//     const compare = await bcrypt.compare(plainPassword, currentUser.password);
+//     return compare;
+// }
 const User = mongoose.model('User', userSchema);
 export default User;

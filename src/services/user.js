@@ -1,3 +1,4 @@
+import Bcrypt from 'bcrypt';
 import { StatusCodes } from 'http-status-codes';
 
 import userRepository from '../repositiories/user.js';
@@ -27,14 +28,14 @@ export const getUserByEmailService = async (data) => {
                 explaination: 'invalid data email sent by client'
             });
         }
-        const isPasswordCorrect = await response.isValidPassword(data.password);
-                if (!isPasswordCorrect) {
-                    throw new clientError({
-                message: 'no registered user found',
+        const inMatchedPassword = await Bcrypt.compare(data.password, response.password);
+        if (!inMatchedPassword) {
+            throw new clientError({
+                message: 'password not matched',
                 statuscode: StatusCodes.BAD_REQUEST,
                 explaination: 'invalid data password sent by client'
             });
-                }
+        }
         return {
             id:response.id,
             name: response.name,
@@ -42,7 +43,7 @@ export const getUserByEmailService = async (data) => {
             email: response.email,
             role: response.role,
             userStatus: response.userStatus,
-            token: createJWT({ id: response._id.toString(), email: response.email })
+            token: createJWT({ id: response._id, email: response.email })
         };
     }
 
