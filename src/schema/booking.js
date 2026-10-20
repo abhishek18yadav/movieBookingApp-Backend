@@ -44,8 +44,9 @@ const bookingSchema = mongoose.Schema({
     },
     seats: [
         {
-            seatNumber: Number,
-            row:String
+            row: { type: String },
+            column: { type: Number },
+            seatType: { type: String } // regular / premium / recliner
         }
     ]
 }, { timestamps: true });

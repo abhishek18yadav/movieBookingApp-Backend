@@ -1,66 +1,44 @@
-import StatusCodes from 'http-status-codes';
-
-import {
-  createPaymentServices,
-  getAllPaymentsServices,
-  getPaymentByIdServices
-} from '../services/payment.js';
-import {
-  customErrorResponse,
-  internalErrorResponse,
-  successResponse
-} from '../utils/common/responseObjects.js';
-
-// Create Payment
-export const createPaymentController = async (req, res) => {
+import { StatusCodes } from 'http-status-codes';
+import { internalServerError } from '../utils/common/responseObjects.js';
+import razorpay from '../config/rajorConfig.js';
+import { createPaymentServices , updatePaymentServices} from '../services/payment.js';
+export const createOrderController = async (req, res) => {
   try {
-    const payment = await createPaymentServices(req.body);
-
-    return res.status(StatusCodes.CREATED).json(
-      successResponse(payment, 'Payment created successfully')
-    );
-  } catch (error) {
-    console.log('createPaymentController error', error);
-
-    if (error.statusCode) {
-      return res.status(error.statusCode).json(customErrorResponse(error));
+    const options = {
+      amount: req.body.amount,
+      currency: 'INR',
+      reciept: `receipt_id_${Date.now()}_${Math.floor(Math.random() * 100)}`,
     }
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(internalErrorResponse(error));
-  }
-};
+    const order = await razorpay.orders.create(options);
+    console.log("order", order);
+    const payment = await createPaymentServices(order.id, order.amount);
+    if (!payment) {
+      throw new Error('order creation failed');
+    }
+    return res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'order created successfully',
+      data: order,
+    });
 
-// Get all Payments
-export const getAllPaymentsController = async (req, res) => {
+  } catch { error } {
+    console.log("error in createOrderController", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(internalServerError(error));
+
+  }
+}
+
+export const capturePaymentController = async (req, res) => {
   try {
-    const payments = await getAllPaymentsServices(req.query);
+    await updatePaymentServices(req.body.orderId, req.body.paymentId, req.body.status, req.body.signature);
 
-    return res.status(StatusCodes.OK).json(
-      successResponse(payments, 'Payments fetched successfully')
-    );
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'payment captured successfully',
+      data :''
+    });
   } catch (error) {
-    console.log('getAllPaymentsController error', error);
-
-    if (error.statusCode) {
-      return res.status(error.statusCode).json(customErrorResponse(error));
-    }
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(internalErrorResponse(error));
+    console.log("error in capturePaymentController", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(internalServerError(error));
   }
-};
-
-// Get Payment by ID
-export const getPaymentByIdController = async (req, res) => {
-  try {
-    const payment = await getPaymentByIdServices(req.params.id);
-
-    return res.status(StatusCodes.OK).json(
-      successResponse(payment, 'Payment fetched successfully')
-    );
-  } catch (error) {
-    console.log('getPaymentByIdController error', error);
-
-    if (error.statusCode) {
-      return res.status(error.statusCode).json(customErrorResponse(error));
-    }
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(internalErrorResponse(error));
-  }
-};
+}

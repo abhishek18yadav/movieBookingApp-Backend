@@ -21,16 +21,16 @@ const showSchema = mongoose.Schema({
         required:true
     },
     seatConfiguration: [
-  new mongoose.Schema({
-    row: { type: String },
-    number: { type: Number },
-    seatType: { type: String }, // regular / premium / recliner
-    status: {
-      type: String,
-      enum: ["available", "locked", "booked"],
-      default: "available"
-    }
-  })
+        new mongoose.Schema({
+            row: { type: String },
+            column: { type: Number },
+            type: { type: String, enum: ["regular", "premium", "recliner"] },
+            status: {
+            type: String,
+            enum: ["available", "locked", "booked"],
+            default: "available"
+            }
+        })
 ],
     ticketPrices: {
         regular:  { type: Number, required: true, min: 0 },

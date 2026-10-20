@@ -14,36 +14,59 @@ export const createBookingService = async (data) => {
                 statusCode:StatusCodes.BAD_REQUEST
             })
         }
-        const selectedSeats = data.seats; // array of seat numbers
-        const seatConfig = show.seatConfiguration;
-        for (let seat of selectedSeats) {
-            let foundSeat = seatConfig.find(
-                s => s.row === seat.row && s.number === seat.number
-          );
-          if (!foundSeat) {
-            throw new Error("Seat not found");
-          }
-
-          if (foundSeat.status !== "available") {
-              throw new Error("Seat already booked or locked");
-        
-          }
-          foundSeat.status = "locked";
+        const requestedSeats = data.seats;
+        const validSeatTypes = ['regular', 'premium', 'recliner'];
+        if (!Array.isArray(requestedSeats) || requestedSeats.length === 0) {
+            throw new clientError({
+                message: 'Select at least one seat',
+                statusCode: StatusCodes.BAD_REQUEST
+            });
         }
-        
-        data.totalCost = selectedSeats.reduce((sum, seat) => {
-            const foundSeat = seatConfig.find(s => s.row === seat.row && s.number === seat.number);
-            const price = show.ticketPrices[foundSeat.type];
-            if (price === undefined) {
+
+        const assignedSeats = [];
+        for (const request of requestedSeats) {
+            if (!request || !validSeatTypes.includes(request.type) || !Number.isInteger(request.number) || request.number <= 0) {
                 throw new clientError({
-                    message: `No price configured for seat type: ${foundSeat.type}`,
+                    message: 'Each seat request must have a valid type and a positive integer number',
                     statusCode: StatusCodes.BAD_REQUEST
                 });
             }
-            return sum + price;
+
+            const availableSeats = show.seatConfiguration.filter(
+                seat => seat.type === request.type && seat.status === 'available'
+            );
+            if (availableSeats.length < request.number) {
+                throw new clientError({
+                    message: `Not enough available ${request.type} seats`,
+                    statusCode: StatusCodes.BAD_REQUEST
+                });
+            }
+
+            for (const seat of availableSeats.slice(0, request.number)) {
+                seat.status = 'locked';
+                assignedSeats.push({
+                    row: seat.row,
+                    column: seat.column,
+                    seatType: seat.type
+                });
+            }
+        }
+
+        data.seats = assignedSeats;
+        data.noOfSeats = assignedSeats.length;
+        data.totalCost = assignedSeats.reduce((total, seat) => {
+            const price = show.ticketPrices[seat.seatType];
+            if (price === undefined) {
+                throw new clientError({
+                    message: `No price configured for seat type: ${seat.seatType}`,
+                    statusCode: StatusCodes.BAD_REQUEST
+                });
+            }
+            return total + price;
         }, 0);
-        const response = await bookingRepository.create(data);
+
         await show.save();
+        const response = await bookingRepository.create(data);
         return response;
         
     } catch (error) {
@@ -221,7 +244,7 @@ export const cancelBookingService = async (bookingId, userId) => {
         // 6. Release seats
         for (const seat of booking.seats) {
             const foundSeat = show.seatConfiguration.find(
-                s => s.row === seat.row && s.number === seat.seatNumber
+                s => s.row === seat.row && s.column === seat.column
             );
             if (foundSeat) {
                 foundSeat.status = 'available';

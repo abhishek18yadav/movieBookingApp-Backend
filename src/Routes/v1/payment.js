@@ -1,16 +1,10 @@
 import express from 'express';
 
-import {
-  createPaymentController,
-  getAllPaymentsController,
-  getPaymentByIdController
-} from '../../controllers/payment.js';
+import { createOrderController, capturePaymentController } from '../../controllers/payment.js';
 import { isAuthenticated } from '../../middlewares/authMiddleware.js';
 
-const router = express.Router();
+const paymentRouter = express.Router();
 
-router.get('/', isAuthenticated, getAllPaymentsController);
-router.post('/', isAuthenticated, createPaymentController);
-router.get('/:id', isAuthenticated, getPaymentByIdController);
-
-export default router;
+paymentRouter.post('/order', isAuthenticated, createOrderController);
+paymentRouter.post('/capture', isAuthenticated, capturePaymentController);
+export default paymentRouter;

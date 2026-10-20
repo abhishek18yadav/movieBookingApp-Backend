@@ -1,9 +1,14 @@
-import Payment from '../schema/payment.js'
 import crudRepository from './crudRepository.js';
+import payment from '../schema/payment.js';
 const paymentRepository = {
-    ...crudRepository(Payment),
-    getpaymentByBookingId: async (bookingId) => {
-        return Payment.find({ bookingId });
+    ...crudRepository(),
+    updatedOrder: async function (orderId, data) {
+        const updatedDoc = await payment.findOneAndUpdate(
+            { orderId: orderId },
+            data,
+            { new: true }
+        );
+        return updatedDoc;
     }
 }
-export default paymentRepository;
+export default paymentRepository

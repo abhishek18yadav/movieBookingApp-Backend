@@ -12,7 +12,7 @@ export const isExpiredBooking = (booking, cutoff) => {
 export const releaseSeats = (seatConfiguration, bookedSeats) => {
     for (const seat of bookedSeats) {
         const found = seatConfiguration.find(
-            s => s.row === seat.row && s.number === seat.number
+            s => s.row === seat.row && s.column === seat.column
         );
         if (found) {
             found.status = 'available';
